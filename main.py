@@ -33,70 +33,39 @@ class Process(object): #Every process will be an object, for better control
         self.action = env.process(self.start(env, instruction_qty, time, needed_ram, ram, cpu, state, name)) 
         #to control when the process will#be stopped
 
-    def start(self, env, instruction_qty, time, needed_ram, ram, cpu, state, name):
-        
-        with ram.get(needed_ram) as queueForRam:
-            yield queueForRam
-            #step 0 (new) Process will ask for ram with the new() function
-            
+    def start(self, env, instructions_qty, time, needed_ram, ram, cpu, state, name):
+        with ram.get(needed_ram) as ramQueue:
+            startTime = env.now
+            yield ramQueue
             print('Process %s requesting %s of RAM at %s' % (name, needed_ram ,env.now))
-            #generator = env.process(new(env,instruction_qty,needed_ram,ram,cpu, 0, name))
-            #env.run(generator)
-            yield  env.process(new(env,instruction_qty,time, needed_ram,ram,cpu, 0, name))
-
-
             state = 1
             print("state is " + str(state))
-            print('Process %s requesting CPU access at %s' % (name, env.now))
 
-            
-            #step 1 (ready) Process will ask for the CPU resource for attendance
-            with cpu.request() as cpu_request:                       
-                yield cpu_request
-                
-                #step 2(running) Process now will be executed and sended to Waiting in case there are
-                #instructions left
-                instruction_qty = instruction_qty - cpu_capacity
-                state = 2
-                print("state is " + str(state))
-                print('Process %s got CPU access at %s' % (name, env.now))
-                if (instruction_qty <= 0): #If instructions are all done
-                    env.process(terminate(env,instruction_qty,needed_ram,ram,cpu,state,name, cpu_request))
-                    #Step 4 (terminated) Process will be done (no more instructions left)
-                    print('Process %s got terminated at %s' % (name, env.now))
-                    state = 4
-                    print("state is " + str(state))
-                    
-                else:
-                    yield env.timeout(1)
-                    cpu.release(cpu_request)
-                    print('Process %s released cpu_resourse at %s' % (name, env.now))
-                    print('Theres still %s instructions in %s' %(instruction_qty, name))
-
-                    #generate random integer to decidethe next step to the process
-                    random_integer = random.randint(1,2)
-                    if (random_integer == 1):
-                        yield env.process(waiting(env, time)) # After this time, the process will be passed to ready again
-                        print('Process %s is executing I/O operationes at %s' % (name, env.now))
-                        state = 1 #ready state again
+            #CPU ---------
+            yield env.timeout(0.5)
+            while(instructions_qty > 0):
+                with cpu.request() as req:
+                    yield req
+                    print('Process %s is running now' % (name))
+                    if((instructions_qty - 3) <= 0): ##change this if wanna change the instructions_qty per Process
+                        yield env.timeout(time)
+                        instructions_qty = instructions_qty - instructions_qty
+                        print('Process %s is Terminated at %s' %(name, env.now))
+                        timesList.append(env.now - startTime)
+                        ram.put(needed_ram) 
                     else:
-                        state = 1 #ready state again
-
-        
-def new(env, instruction_qty, time, needed_ram, ram, cpu, state, name):
-    if (ram.level > needed_ram):
-        yield ram.get(needed_ram)
-        yield env.timeout(time)
-        
-def terminate(env, instruction_qty, needed_ram, ram, cpu, state, name, cpu_request):
-    print(ram.level)
-    cpu.release(cpu_request)
-    timesList.append(env.now)
-    yield ram.put(needed_ram)
-
-def waiting(env, waiting_timeout):
-    yield env.timeout(waiting_timeout)
-
+                        yield env.timeout(1)
+                        instructions_qty = instructions_qty - cpu_capacity
+                        print('Process %s leaves the CPU at %s' % (name, env.now))
+                        
+                        random_integer = random.randint(1,2)
+                        if (random_integer == 1):
+                            yield env.timeout(1) # After this time, the process will be passed to ready again
+                            print('Process %s is executing I/O operationes at %s' % (name, env.now))
+                            state = 1 #ready state again
+                        else:
+                            state = 1 #ready state again
+                        
 
 def runNewSimulation(process_qty):
     
@@ -118,12 +87,12 @@ totalProcessTime = 0
 for i in timesList:#Calculamos el promedio
     totalProcessTime +=  i
 
-avg_time = (totalProcessTime / len(timesList))
+avg_time = float(totalProcessTime / len(timesList))
 
 desv_time = statistics.stdev(timesList) # desviacion estandar
 
 # Resultados finales
-print("Tiempo promedio: " + str(int (avg_time)) + " unidades de tiempo.\n")
+print("\n\nTiempo promedio: " + str(int (avg_time)) + " unidades de tiempo.")
 print("Desvest: " + str(int (desv_time))+ "\n")
 
 #Process(env, 3, 10, ram, cpu, 0, "myProcess")

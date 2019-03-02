@@ -117,24 +117,12 @@ totalProcessTime = 0
 for i in timesList:#Calculamos el promedio
     totalProcessTime +=  i
 
-avg = (totalProcessTime / len(timesList))
+avg_time = (totalProcessTime / len(timesList))
 
-desv = statistics.stdev(timesList) # desviacion estandar
+desv_time = statistics.stdev(timesList) # desviacion estandar
 
 # Resultados finales
-print("\n\n_______________________________________\n\n\t\tResultados\n")
-print(">>> Tiempo total: " + str(int(totalTime)) + " unidades de tiempo.")
-print(">>> Tiempo promedio: " + str(int (promTime)) + " unidades de tiempo.\n\n")
-print(">>> Desviacion estandar: " + str(int (desv)) + "\n\n")
-
-
-
-sumatoria = 0
-for i in datos:#Calculamos la desviacion estandar
-    sumatoria = sumatoria + ((i-promedio)**2)
-desviacion = sumatoria/len(datos)
-desviacion = math.sqrt(desviacion)
-print("El tiempo promedio es " + str(promedio))
-print("La desviacion estandar es " + str(desviacion))
+print("Tiempo promedio: " + str(int (avg_time)) + " unidades de tiempo.\n")
+print("Desvest: " + str(int (desv_time))+ "\n")
 
 #Process(env, 3, 10, ram, cpu, 0, "myProcess")

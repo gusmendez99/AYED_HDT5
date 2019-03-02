@@ -6,6 +6,7 @@
 
 import simpy
 import random
+import math
 import statistics
 
 #Procesadores a utilizar
@@ -73,8 +74,8 @@ def runNewSimulation(process_qty):
         
         ram_qty = random.randint(1, 10)
         instruction_qty = random.randint(1, 10)
-        time = random.expovariate(1.0 / interval_time)#Generamos el intervalo
-
+        #time = random.expovariate(1.0 / interval_time)#Generamos el intervalo
+        time = math.exp(1.0/interval_time)
         Process(env, instruction_qty, time, ram_qty, ram, cpu, 0, "Proceso %s" %(i + 1))
         
 

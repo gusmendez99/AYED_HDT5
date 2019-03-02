@@ -35,7 +35,8 @@ class Process(object): #Every process will be an object, for better control
 
     def start(self, env, instruction_qty, time, needed_ram, ram, cpu, state, name):
         
-        while True:
+        with ram.get(needed_ram) as queueForRam:
+            yield queueForRam
             #step 0 (new) Process will ask for ram with the new() function
             
             print('Process %s requesting %s of RAM at %s' % (name, needed_ram ,env.now))
